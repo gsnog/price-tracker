@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-// import api from '../services/api';
+import api from '../services/api';
 
 export interface PriceHistory {
   id: number;
@@ -9,86 +9,98 @@ export interface PriceHistory {
 
 export interface Product {
   id: number;
-  url: string;
-  name: string;
-  imageUrl: string;
-  currentPrice: number;
-  priceDrop: boolean;
-  history: PriceHistory[];
+  urlProduto: string;
+  ultimoPreco: number;
+  status: string;
+  history?: PriceHistory[];
+}
+
+export interface User {
+  id: number;
+  nome: string;
+  email: string;
+  telegramChatId: string | null;
 }
 
 export function usePriceData() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchUser = useCallback(async () => {
+    try {
+      const response = await api.get('/api/user/me');
+      setUser(response.data);
+      return true;
+    } catch (err: any) {
+      setUser(null);
+      return false;
+    }
+  }, []);
 
   const fetchProducts = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      // Quando a API estiver pronta, descomente:
-      // const response = await api.get('/api/products');
-      // setProducts(response.data);
-      
-      // Mock data temporário para exibir a interface até o backend ser conectado
-      setProducts([
-        {
-          id: 1,
-          name: "Sony PlayStation 5 Console",
-          url: "https://example.com/ps5",
-          imageUrl: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&q=80&w=400",
-          currentPrice: 449.99,
-          priceDrop: true,
-          history: [
-            { id: 1, price: 499.99, date: "2023-10-01" },
-            { id: 2, price: 499.99, date: "2023-10-15" },
-            { id: 3, price: 479.99, date: "2023-11-01" },
-            { id: 4, price: 449.99, date: "2023-11-10" }
-          ]
-        },
-        {
-          id: 2,
-          name: "Apple MacBook Pro 14\"",
-          url: "https://example.com/macbook",
-          imageUrl: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&q=80&w=400",
-          currentPrice: 1999.00,
-          priceDrop: false,
-          history: [
-            { id: 1, price: 1999.00, date: "2023-10-01" },
-            { id: 2, price: 1999.00, date: "2023-10-15" },
-            { id: 3, price: 1999.00, date: "2023-11-01" },
-            { id: 4, price: 1999.00, date: "2023-11-10" }
-          ]
-        }
-      ]);
-      
+      const response = await api.get('/alertas');
+      // Adicionando um array de histórico falso temporário apenas para o gráfico não quebrar, 
+      // já que a API ainda não retorna a tabela de histórico (PriceHistory)
+      const data = response.data.map((p: any) => ({
+        ...p,
+        history: p.ultimoPreco ? [
+          { id: 1, price: p.ultimoPreco * 1.1, date: new Date(Date.now() - 86400000 * 7).toISOString() },
+          { id: 2, price: p.ultimoPreco, date: new Date().toISOString() }
+        ] : []
+      }));
+      setProducts(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch products');
-      console.error(err);
+      if (err.response?.status !== 401) {
+        setError(err.message || 'Failed to fetch products');
+      }
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  const init = useCallback(async () => {
+    setIsLoading(true);
+    const loggedIn = await fetchUser();
+    if (loggedIn) {
+      await fetchProducts();
+    } else {
+      setIsLoading(false);
+    }
+  }, [fetchUser, fetchProducts]);
 
-  const addUrl = async (url: string) => {
+  useEffect(() => {
+    init();
+  }, [init]);
+
+  const addUrl = async (urlProduto: string) => {
     try {
       setError(null);
-      // const response = await api.post('/api/products', { url });
-      // await fetchProducts();
-      
-      // Mock de adição
-      console.log("Adicionando URL:", url);
-      return new Promise<void>((resolve) => setTimeout(resolve, 1000));
+      await api.post('/alertas', { urlProduto });
+      await fetchProducts();
     } catch (err: any) {
       setError(err.message || 'Failed to add URL');
       throw err;
     }
   };
 
-  return { products, isLoading, error, fetchProducts, addUrl };
+  const updateTelegram = async (chatId: string) => {
+    try {
+      const response = await api.put('/api/user/telegram', { telegramChatId: chatId });
+      setUser(response.data);
+    } catch (err: any) {
+      setError(err.message || 'Failed to update Telegram ID');
+      throw err;
+    }
+  };
+
+  const loginWithGoogle = () => {
+    window.location.href = `${api.defaults.baseURL}/oauth2/authorization/google`;
+  };
+
+  return { user, products, isLoading, error, addUrl, updateTelegram, loginWithGoogle };
 }

@@ -13,18 +13,18 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="glass-card overflow-hidden group hover:-translate-y-1 transition-all duration-300">
       <div className="p-6 relative">
-        {product.priceDrop && (
+        {product.ultimoPreco != null && (
           <div className="absolute top-4 right-4 bg-success/20 text-success border border-success/30 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 backdrop-blur-md z-10 animate-pulse">
             <TrendingDown size={14} />
-            PRICE DROP
+            TRACKING
           </div>
         )}
         
         <div className="flex gap-5">
           <div className="w-24 h-24 rounded-xl overflow-hidden bg-white/10 shrink-0 relative">
             <img 
-              src={product.imageUrl} 
-              alt={product.name} 
+              src={'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=400'} 
+              alt="Produto" 
               className="w-full h-full object-cover"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=400';
@@ -34,24 +34,19 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
           
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold truncate mb-1 pr-24" title={product.name}>
-              {product.name}
+            <h3 className="text-lg font-semibold truncate mb-1 pr-24" title={product.urlProduto}>
+              Produto Monitorado
             </h3>
             
             <div className="flex items-end gap-3 mb-3">
               <span className="text-3xl font-bold text-white tracking-tight">
-                ${product.currentPrice.toFixed(2)}
+                {product.ultimoPreco ? `$${product.ultimoPreco.toFixed(2)}` : 'Lendo...'}
               </span>
-              {product.priceDrop && product.history.length > 0 && (
-                <span className="text-slate-400 line-through text-sm mb-1">
-                  ${product.history[0].price.toFixed(2)}
-                </span>
-              )}
             </div>
             
             <div className="flex flex-wrap gap-2 text-xs">
               <a 
-                href={product.url} 
+                href={product.urlProduto} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-primary hover:text-primary-hover transition-colors"
@@ -79,7 +74,11 @@ export function ProductCard({ product }: ProductCardProps) {
             <Tag size={16} className="text-primary" />
             <h4 className="font-medium text-sm text-slate-200">Price History</h4>
           </div>
-          <HistoryChart data={product.history} />
+          {product.history && product.history.length > 0 ? (
+            <HistoryChart data={product.history} />
+          ) : (
+            <p className="text-sm text-slate-400">Aguardando mais dados...</p>
+          )}
         </div>
       </div>
     </div>

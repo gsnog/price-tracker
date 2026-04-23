@@ -20,6 +20,8 @@ public class Usuario {
     @Column(unique = true)
     private String email;
 
+    private String telegramChatId;
+
     public Usuario(String nome, String email) {
         this.nome = nome;
         this.email = email;

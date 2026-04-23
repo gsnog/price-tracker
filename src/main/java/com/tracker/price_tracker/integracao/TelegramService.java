@@ -14,16 +14,24 @@ public class TelegramService {
     private String chatId;
 
     public void enviarMensagem(String texto){
+        enviarMensagemParaUsuario(texto, this.chatId);
+    }
+
+    public void enviarMensagemParaUsuario(String texto, String chatIdEspecifico){
+        if (chatIdEspecifico == null || chatIdEspecifico.trim().isEmpty()) {
+            System.out.println("Chat ID não configurado. Pulando mensagem Telegram.");
+            return;
+        }
         String url = "https://api.telegram.org/bot" + botToken + "/sendMessage";
         RestTemplate restTemplate = new RestTemplate();
         Map<String, String> body = Map.of(
-                "chat_id", chatId,
+                "chat_id", chatIdEspecifico,
                 "text", texto
         );
 
         try{
             restTemplate.postForObject(url, body, String.class);
-            System.out.println("Mensagem disparada com sucesso para Telegram");
+            System.out.println("Mensagem disparada com sucesso para Telegram: " + chatIdEspecifico);
         }catch (Exception e){
             System.out.println("Erro ao enviar mensagem" + e.getMessage());
         }

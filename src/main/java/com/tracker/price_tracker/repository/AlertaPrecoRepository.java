@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface AlertaPrecoRepository extends JpaRepository<AlertaPreco, Long> {
     List<AlertaPreco> findAllByStatus(String status);
+    List<AlertaPreco> findAllByUsuario(com.tracker.price_tracker.model.Usuario usuario);
 }

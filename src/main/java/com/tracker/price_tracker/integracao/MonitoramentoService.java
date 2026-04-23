@@ -43,8 +43,14 @@ public class MonitoramentoService {
             }
 
             if (precoRaspadoSite.compareTo(alerta.getUltimoPreco()) < 0) {
-                telegramService.enviarMensagem("📉 QUEDA DE PREÇO! O produto " + alerta.getUrlProduto() +
-                        " caiu de R$ " + alerta.getUltimoPreco() + " para R$ " + precoRaspadoSite + "! Aproveita!");
+                String mensagem = "📉 QUEDA DE PREÇO! O produto " + alerta.getUrlProduto() +
+                        " caiu de R$ " + alerta.getUltimoPreco() + " para R$ " + precoRaspadoSite + "! Aproveita!";
+                
+                if (alerta.getUsuario() != null && alerta.getUsuario().getTelegramChatId() != null) {
+                    telegramService.enviarMensagemParaUsuario(mensagem, alerta.getUsuario().getTelegramChatId());
+                } else {
+                    telegramService.enviarMensagem(mensagem); // Fallback para global
+                }
             }
 
             if (precoRaspadoSite.compareTo(alerta.getUltimoPreco()) != 0) {

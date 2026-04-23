@@ -6,9 +6,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
+import org.springframework.beans.factory.annotation.Value;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Value("${FRONTEND_URL:http://localhost:3000}")
+    private String frontendUrl;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -18,12 +23,12 @@ public class SecurityConfig {
 
                 // 2. Regras de Autorização de Rotas
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/alertas").permitAll() // <-- LIBERAMOS O /alertas AQUI!
+                        .requestMatchers("/").permitAll() // /alertas agora exige autenticação
                         .anyRequest().authenticated()
                 )
                 // 3. Tipo de Login
                 .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("/perfil", true)
+                        .defaultSuccessUrl(frontendUrl, true)
                 );
 
         return http.build();
