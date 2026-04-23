@@ -2,7 +2,6 @@ package com.tracker.price_tracker.controller;
 
 import com.tracker.price_tracker.model.Usuario;
 import com.tracker.price_tracker.repository.UsuarioRepository;
-import com.tracker.price_tracker.model.Usuario;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +32,7 @@ public class PerfilController {
                     return usuarioRepository.save(new Usuario(nomeGoogle, emailGoogle));
                 });
 
-        return "Olá, " + usuario.getNome() + "! Você está registrado no nosso banco de dados com o ID: " + usuario.getId();
+        return "Olá, " + usuario.getNome() + "! Você está registrado no nosso banco de dados com o ID: "
+                + usuario.getId();
     }
 }
